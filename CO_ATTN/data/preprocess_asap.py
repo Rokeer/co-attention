@@ -47,7 +47,7 @@ def collect_dataset(input_file):
     return dataset
 
 dataset = collect_dataset(args.input_file)
-for fold_idx in range(1, 5):
+for fold_idx in range(0, 5):
     for dataset_type in ['dev', 'test', 'train']:
         lines = extract_based_on_ids(dataset, 'fold_%d/%s_ids.txt' % (fold_idx, dataset_type))
         create_dataset(lines, 'fold_%d/%s.tsv' % (fold_idx, dataset_type))
