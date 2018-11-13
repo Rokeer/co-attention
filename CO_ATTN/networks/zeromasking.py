@@ -22,6 +22,7 @@ class ZeroMaskedEntries(Layer):
     def build(self, input_shape):
         self.output_dim = input_shape[1]
         self.repeat_dim = input_shape[2]
+        self.built = True
 
     def call(self, x, mask=None):
         mask = K.cast(mask, 'float32')

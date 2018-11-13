@@ -37,6 +37,7 @@ class Attention(Layer):
         init_val_W = (np.random.randn(input_shape[2], input_shape[2]) * self.init_stdev).astype(K.floatx())
         self.att_W = K.variable(init_val_W, name='att_W')
         self.trainable_weights = [self.att_v, self.att_W]
+        self.built = True
     
     def call(self, x, mask=None):
         y = K.dot(x, self.att_W)
