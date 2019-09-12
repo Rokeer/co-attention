@@ -1,5 +1,5 @@
-from keras.layers import Layer
-from keras import backend as K
+from tensorflow.keras.layers import Layer
+from tensorflow.keras import backend as K
 
 from backend import last_dim_flatten
 from masked_operations import masked_softmax

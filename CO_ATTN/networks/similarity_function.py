@@ -14,7 +14,7 @@ in the appropriate dimensions to make them the same before you can use these fun
 Attention and MatrixAttention layers do this.
 """
 from typing import List
-from keras import activations, initializers
+from tensorflow.keras import activations, initializers
 
 class SimilarityFunction:
     def __init__(self, name: str, initialization: str='glorot_uniform', activation: str='linear'):

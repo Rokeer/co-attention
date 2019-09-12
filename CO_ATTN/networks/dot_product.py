@@ -1,6 +1,6 @@
 from typing import List
 
-from keras import backend as K
+from tensorflow.keras import backend as K
 from similarity_function import SimilarityFunction
 
 

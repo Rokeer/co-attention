@@ -24,7 +24,7 @@ def main():
     parser = argparse.ArgumentParser(description="sentence Hi_CNN model")
     parser.add_argument('--train_flag', action='store_true', help='Train or eval')
     parser.add_argument('--fine_tune', action='store_true', help='Fine tune word embeddings')
-    parser.add_argument('--embedding', type=str, default='word2vec',
+    parser.add_argument('--embedding', type=str, default='glove',
                         help='Word embedding type, word2vec, senna or glove')
     parser.add_argument('--embedding_dict', type=str, default='glove/glove.6B.50d.txt',
                         help='Pretrained embedding path')
@@ -143,17 +143,6 @@ def main():
         evl.print_info()
 
     evl.print_final_info()
-
-    # vector_output = K.function([model.layers[0].input, model.layers[1].input],
-    #                            [model.layers[17].output, model.layers[18].output])
-    # outputs = vector_output([X_train[:1], train_context[:1]])
-
-    # context_essay = outputs[0]
-
-    # essay_context = outputs[1]
-
-    # np.savetxt('context_essay.csv', context_essay, delimiter=',')
-    # np.savetxt('essay_context.csv', essay_context[0], delimiter=',')
 
     # use nea evaluator, verified to be identical as above results
     # from asap_evaluator import Evaluator

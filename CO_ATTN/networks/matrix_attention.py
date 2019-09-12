@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import List, Any, Dict
-from keras.layers import Layer
-from keras import backend as K
+from tensorflow.keras.layers import Layer
+from tensorflow.keras import backend as K
 from linear import Linear
 from dot_product import DotProduct
 
@@ -46,11 +46,13 @@ class MatrixAttention(Layer):
     def build(self, input_shape):
         tensor_1_dim = input_shape[0][-1]
         tensor_2_dim = input_shape[1][-1]
-        self.trainable_weights = self.similarity_function.initialize_weights(tensor_1_dim, tensor_2_dim)
+        self.similarity_function.initialize_weights(tensor_1_dim, tensor_2_dim)
         super(MatrixAttention, self).build(input_shape)
 
     def compute_mask(self, inputs, mask=None):
         # pylint: disable=unused-argument
+        if mask is None:
+            return None
         mask_1, mask_2 = mask
         if mask_1 is None and mask_2 is None:
             return None

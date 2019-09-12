@@ -5,7 +5,6 @@
 # @Last Modified time: 2018-11-11 16:26:13
 import reader
 import utils
-import keras.backend as K
 import numpy as np
 
 logger = utils.get_logger("Prepare data ...")

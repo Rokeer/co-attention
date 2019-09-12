@@ -1,8 +1,8 @@
 from typing import List, Tuple
 
-from keras import backend as K
+from tensorflow.keras import backend as K
 
-from keras.layers import Layer
+from tensorflow.keras.layers import Layer
 
 
 class ComplexConcat(Layer):
@@ -50,6 +50,8 @@ class ComplexConcat(Layer):
 
     def compute_mask(self, inputs, mask=None):
         # pylint: disable=unused-argument
+        if mask is None:
+            return None
         return mask[0]
 
     def compute_output_shape(self, input_shape):

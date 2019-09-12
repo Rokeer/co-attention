@@ -16,6 +16,9 @@ from networks.hier_networks import build_hrcnn_model
 import data_prepare
 from evaluator import Evaluator
 
+# from tensorflow.python.framework.ops import disable_eager_execution
+# disable_eager_execution()
+
 logger = get_logger("ATTN")
 np.random.seed(100)
 
@@ -24,7 +27,7 @@ def main():
     parser = argparse.ArgumentParser(description="sentence Hi_CNN model")
     parser.add_argument('--train_flag', action='store_true', help='Train or eval')
     parser.add_argument('--fine_tune', action='store_true', help='Fine tune word embeddings')
-    parser.add_argument('--embedding', type=str, default='word2vec', help='Word embedding type, word2vec, senna or glove')
+    parser.add_argument('--embedding', type=str, default='glove', help='Word embedding type, word2vec, senna or glove')
     parser.add_argument('--embedding_dict', type=str, default='glove/glove.6B.50d.txt', help='Pretrained embedding path')
     parser.add_argument('--embedding_dim', type=int, default=50, help='Only useful when embedding is randomly initialised')
     parser.add_argument('--char_embedd_dim', type=int, default=30, help='char embedding dimension if using char embedding')
@@ -52,7 +55,7 @@ def main():
     parser.add_argument('--train', type=str, help='train file', default='data/fold_0/train.tsv')  # "data/word-level/*.trpreprocess_asap.pyain"
     parser.add_argument('--dev', type=str, help='dev file', default='data/fold_0/dev.tsv')
     parser.add_argument('--test', type=str, help='test file', default='data/fold_0/test.tsv')
-    parser.add_argument('--prompt_id', type=int, default=1, help='prompt id of essay set')
+    parser.add_argument('--prompt_id', type=int, default=3, help='prompt id of essay set')
     parser.add_argument('--init_bias', action='store_true', help='init the last layer bias with average score of training data')
     parser.add_argument('--mode', type=str, choices=['mot', 'att', 'merged'], default='att', \
                         help='Mean-over-Time pooling or attention-pooling, or two pooling merged')

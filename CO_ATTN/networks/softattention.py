@@ -7,10 +7,10 @@ import marshal
 import sys
 import warnings
 
-from keras import backend as K
+from tensorflow.keras import backend as K
 import tensorflow
 # from keras import activations, initializations, regularizers
-from keras.engine.topology import Layer, InputSpec
+from tensorflow.keras.layers import Layer, InputSpec
 import tensorflow as tf
 from matrix_attention import MatrixAttention
 from masked_softmax import MaskedSoftmax
@@ -33,10 +33,10 @@ class Attention(Layer):
 
     def build(self, input_shape):
         init_val_v = (np.random.randn(input_shape[2]) * self.init_stdev).astype(K.floatx())
-        self.att_v = K.variable(init_val_v, name='att_v')
+        self.att_v = tf.Variable(init_val_v, name='att_v', trainable=True)
         init_val_W = (np.random.randn(input_shape[2], input_shape[2]) * self.init_stdev).astype(K.floatx())
-        self.att_W = K.variable(init_val_W, name='att_W')
-        self.trainable_weights = [self.att_v, self.att_W]
+        self.att_W = tf.Variable(init_val_W, name='att_W', trainable=True)
+        #self.trainable_weights = [self.att_v, self.att_W]
         self.built = True
     
     def call(self, x, mask=None):

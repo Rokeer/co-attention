@@ -1,6 +1,7 @@
-from keras import backend as K
+from tensorflow.keras import backend as K
 
-from keras.layers import Layer
+from tensorflow.keras.layers import Layer
+import tensorflow as tf
 
 
 class RepeatLike(Layer):
@@ -43,14 +44,16 @@ class RepeatLike(Layer):
         return input_shape[0][:self.axis] + (input_shape[1][self.copy_from_axis],) + input_shape[0][self.axis:]
 
     def call(self, inputs, mask=None):
+        # TODO: I am using a workaround to deal with this problem.
         return self.__repeat_tensor(inputs[0], inputs[1])
+        # return tf.reshape(self.__repeat_tensor(inputs[0], inputs[1]), self.compute_output_shape(tf.shape(inputs)))
 
     def __repeat_tensor(self, to_repeat, to_copy):
-        expanded = K.expand_dims(to_repeat, self.axis)
+        expanded = tf.expand_dims(to_repeat, self.axis)
         ones = [1] * K.ndim(expanded)
-        num_repetitions = K.shape(to_copy)[self.copy_from_axis]
-        tile_shape = K.concatenate([ones[:self.axis], [num_repetitions], ones[self.axis+1:]], 0)
-        return K.tile(expanded, tile_shape)
+        num_repetitions = to_copy.shape[self.copy_from_axis]
+        tile_shape = tf.concat([ones[:self.axis], [num_repetitions], ones[self.axis+1:]], 0)
+        return tf.tile(expanded, tile_shape)
 
     def get_config(self):
         base_config = super(RepeatLike, self).get_config()

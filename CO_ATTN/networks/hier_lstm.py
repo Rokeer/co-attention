@@ -3,16 +3,16 @@
 # @Date:   2017-01-09 16:19:32
 # @Last Modified by:   feidong1991
 # @Last Modified time: 2017-06-18 16:06:12
-import keras.backend as K
-from keras.models import *
-from keras.optimizers import *
-from keras.layers.core import *
-from keras.layers import Input, Embedding, LSTM, GRU, Dense, merge
-from keras.layers import TimeDistributed
+import tensorflow.keras.backend as K
+from tensorflow.keras.models import *
+from tensorflow.keras.optimizers import *
+from tensorflow.keras.layers.core import *
+from tensorflow.keras.layers import Input, Embedding, LSTM, GRU, Dense, merge
+from tensorflow.keras.layers import TimeDistributed
 
-from keras.layers.convolutional import Convolution1D, MaxPooling1D, AveragePooling1D
-from keras.layers.convolutional import Convolution2D, AveragePooling2D, MaxPooling2D
-from keras.layers.pooling import GlobalAveragePooling1D
+from tensorflow.keras.layers.convolutional import Convolution1D, MaxPooling1D, AveragePooling1D
+from tensorflow.keras.layers.convolutional import Convolution2D, AveragePooling2D, MaxPooling2D
+from tensorflow.keras.layers.pooling import GlobalAveragePooling1D
 from utils import get_logger
 import time
 

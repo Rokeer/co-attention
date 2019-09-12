@@ -3,7 +3,7 @@ These are utility functions that are similar to calls to Keras' backend.  Some o
 because a current function in keras.backend is broken, some are things that just haven't been
 implemented.
 """
-import keras.backend as K
+import tensorflow.keras.backend as K
 import tensorflow as tf
 
 VERY_LARGE_NUMBER = 1e30

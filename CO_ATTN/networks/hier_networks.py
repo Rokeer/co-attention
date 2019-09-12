@@ -4,17 +4,15 @@
 # @Last Modified by:   rokeer
 # @Last Modified time: 2018-11-11 16:26:13
 
-from keras.models import *
-from keras.optimizers import *
-from keras.layers.core import *
-from keras.layers import Input, Embedding, LSTM, GRU, Dense, merge, Concatenate, RepeatVector
-from keras.layers import TimeDistributed, Conv1D
+from tensorflow.keras.models import *
+# from tensorflow.keras.layers import *
+from tensorflow.keras.layers import Input, Embedding, LSTM, GRU, Dense, concatenate, Concatenate, RepeatVector
+from tensorflow.keras.layers import TimeDistributed, Conv1D, Dense, Dropout, Reshape
 
-from keras.layers.convolutional import MaxPooling1D, AveragePooling1D
-from keras.layers.convolutional import Convolution2D, AveragePooling2D, MaxPooling2D
-from keras.layers.pooling import GlobalAveragePooling1D, GlobalMaxPooling1D
-from keras.regularizers import l2
-import keras.backend as K
+from tensorflow.keras.layers import MaxPooling1D, AveragePooling1D
+from tensorflow.keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
+from tensorflow.keras.regularizers import l2
+import tensorflow.keras.backend as K
 
 from softattention import Attention, CoAttention, CoAttentionWithoutBi
 from zeromasking import ZeroMaskedEntries
@@ -105,7 +103,7 @@ def build_hrcnn_model(opts, vocab_size=0, char_vocabsize=0, maxnum=50, maxlen=50
         max_xc = TimeDistributed(GlobalMaxPooling1D(), name='avg_xc')(cnn_xc)
         res_xc2 = Reshape((N, L, opts.char_nbfilters), name='res_xc2')(max_xc)
 
-        w_repr = merge([resh_W, res_xc2], mode='concat', name='w_repr')
+        w_repr = concatenate([resh_W, res_xc2], name='w_repr')
         zcnn = TimeDistributed(Conv1D(opts.nbfilters, opts.filter1_len, padding='valid'), name='zcnn')(w_repr)
     else:
         zcnn = TimeDistributed(Conv1D(opts.nbfilters, opts.filter1_len, padding='valid'), name='zcnn')(resh_W)
@@ -121,7 +119,7 @@ def build_hrcnn_model(opts, vocab_size=0, char_vocabsize=0, maxnum=50, maxlen=50
         logger.info('Use mean-over-time and attention-pooling together on sentence')
         avg_zcnn1 = TimeDistributed(GlobalAveragePooling1D(), name='avg_zcnn1')(zcnn)
         avg_zcnn2 = TimeDistributed(Attention(), name='avg_zcnn2')(zcnn)
-        avg_zcnn = merge([avg_zcnn1, avg_zcnn2], mode='concat', name='avg_zcnn')
+        avg_zcnn = concatenate([avg_zcnn1, avg_zcnn2], name='avg_zcnn')
     else:
         raise NotImplementedError
     hz_lstm = LSTM(opts.lstm_units, return_sequences=True, name='hz_lstm')(avg_zcnn)
@@ -136,7 +134,7 @@ def build_hrcnn_model(opts, vocab_size=0, char_vocabsize=0, maxnum=50, maxlen=50
         logger.info('Use mean-over-time and attention-pooling together on text')
         avg_hz_lstm1 = GlobalAveragePooling1D(name='avg_hz_lstm1')(hz_lstm)
         avg_hz_lstm2 = Attention(name='avg_hz_lstm2')(hz_lstm)
-        avg_hz_lstm = merge([avg_hz_lstm1, avg_hz_lstm2], mode='concat', name='avg_hz_lstm')
+        avg_hz_lstm = concatenate([avg_hz_lstm1, avg_hz_lstm2], name='avg_hz_lstm')
     else:
         raise NotImplementedError
     if opts.l2_value:
@@ -262,7 +260,7 @@ def build_shrcnn_model(opts, vocab_size=0, char_vocabsize=0, maxnum=50, maxlen=5
         logger.info('Use mean-over-time and attention-pooling together on sentence')
         avg_zcnn1 = TimeDistributed(GlobalAveragePooling1D(), name='avg_zcnn1')(zcnn)
         avg_zcnn2 = TimeDistributed(Attention(), name='avg_zcnn2')(zcnn)
-        avg_zcnn = merge([avg_zcnn1, avg_zcnn2], mode='concat', name='avg_zcnn')
+        avg_zcnn = concatenate([avg_zcnn1, avg_zcnn2], name='avg_zcnn')
     else:
         raise NotImplementedError
 
@@ -319,7 +317,7 @@ def build_shrcnn_model(opts, vocab_size=0, char_vocabsize=0, maxnum=50, maxlen=5
         logger.info('Use mean-over-time and attention-pooling together on text')
         avg_hz_lstm1 = GlobalAveragePooling1D(name='avg_hz_lstm1')(hz_lstm)
         avg_hz_lstm2 = Attention(name='avg_hz_lstm2')(hz_lstm)
-        avg_hz_lstm = merge([avg_hz_lstm1, avg_hz_lstm2], mode='concat', name='avg_hz_lstm')
+        avg_hz_lstm = concatenate([avg_hz_lstm1, avg_hz_lstm2], name='avg_hz_lstm')
     else:
         raise NotImplementedError
     if opts.l2_value:
@@ -373,7 +371,7 @@ def build_char_stacked_model(opts, char_vocabsize=0, maxnum=50, maxlen=50, maxch
     avg_xc = TimeDistributed(GlobalAveragePooling1D(), name='avg_xc')(cnn_xc)
     res_avg_xc = Reshape((N, L, opts.char_nbfilters), name='res_avg_xc')(avg_xc)
     res_max_xc = Reshape((N, L, opts.char_nbfilters), name='res_max_xc')(max_xc)
-    w_repr = merge([res_avg_xc, res_max_xc], mode='concat', name='w_repr')
+    w_repr = concatenate([res_avg_xc, res_max_xc], name='w_repr')
     zcnn = TimeDistributed(Conv1D(opts.nbfilters, opts.filter1_len, padding='valid'), name='zcnn')(w_repr)
 
     # pooling mode
@@ -387,7 +385,7 @@ def build_char_stacked_model(opts, char_vocabsize=0, maxnum=50, maxlen=50, maxch
         logger.info('Use mean-over-time and attention-pooling together on sentence')
         avg_zcnn1 = TimeDistributed(GlobalAveragePooling1D(), name='avg_zcnn1')(zcnn)
         avg_zcnn2 = TimeDistributed(Attention(), name='avg_zcnn2')(zcnn)
-        avg_zcnn = merge([avg_zcnn1, avg_zcnn2], mode='concat', name='avg_zcnn')
+        avg_zcnn = concatenate([avg_zcnn1, avg_zcnn2], name='avg_zcnn')
     else:
         raise NotImplementedError
     hz_lstm = LSTM(opts.lstm_units, return_sequences=True, name='hz_lstm')(avg_zcnn)
@@ -402,7 +400,7 @@ def build_char_stacked_model(opts, char_vocabsize=0, maxnum=50, maxlen=50, maxch
         logger.info('Use mean-over-time and attention-pooling together on text')
         avg_hz_lstm1 = GlobalAveragePooling1D(name='avg_hz_lstm1')(hz_lstm)
         avg_hz_lstm2 = Attention(name='avg_hz_lstm2')(hz_lstm)
-        avg_hz_lstm = merge([avg_hz_lstm1, avg_hz_lstm2], mode='concat', name='avg_hz_lstm')
+        avg_hz_lstm = concatenate([avg_hz_lstm1, avg_hz_lstm2], name='avg_hz_lstm')
     else:
         raise NotImplementedError
     if opts.l2_value:

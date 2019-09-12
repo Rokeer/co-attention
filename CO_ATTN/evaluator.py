@@ -29,9 +29,13 @@ class Evaluator():
         self.best_test = [-1, -1, -1, -1]
 
     def calc_correl(self, train_pred, dev_pred, test_pred):
-        self.train_pr = pearson(self.train_y_org, train_pred)
-        self.dev_pr = pearson(self.dev_y_org, dev_pred)
-        self.test_pr = pearson(self.test_y_org, test_pred)
+        # TODO: might need to add pearson back.
+        # self.train_pr = pearson(self.train_y_org, train_pred)
+        # self.dev_pr = pearson(self.dev_y_org, dev_pred)
+        # self.test_pr = pearson(self.test_y_org, test_pred)
+        self.train_pr = 0.0
+        self.dev_pr = 0.0
+        self.test_pr = 0.0
 
         self.train_spr = spearman(self.train_y_org, train_pred)
         self.dev_spr = spearman(self.dev_y_org, dev_pred)

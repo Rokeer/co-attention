@@ -1,6 +1,7 @@
 from typing import List
 
-from keras import backend as K
+import tensorflow as tf
+from tensorflow.keras import backend as K
 from similarity_function import SimilarityFunction
 
 
@@ -29,8 +30,8 @@ class Linear(SimilarityFunction):
 
     def initialize_weights(self, tensor_1_dim: int, tensor_2_dim: int) -> List['K.variable']:
         combined_dim = self._get_combined_dim(tensor_1_dim, tensor_2_dim)
-        self.weight_vector = K.variable(self.init((combined_dim, 1)), name=self.name + "_weights")
-        self.bias = K.variable(self.init((1,)), name=self.name + "_bias")
+        self.weight_vector = tf.Variable(self.init((combined_dim, 1)), name=self.name + "_weights", trainable=True)
+        self.bias = tf.Variable(self.init((1,)), name=self.name + "_bias", trainable=True)
         return [self.weight_vector, self.bias]
 
     def compute_similarity(self, tensor_1, tensor_2):
