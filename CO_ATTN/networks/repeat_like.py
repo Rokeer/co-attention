@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# @Author: colinzhang
+# @Date:   9/12/19 10:08 PM
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 from tensorflow.keras import backend as K
 
 from tensorflow.keras.layers import Layer
@@ -38,22 +43,22 @@ class RepeatLike(Layer):
         # pylint: disable=unused-argument
         if mask is None or mask[0] is None:
             return None
-        return self.__repeat_tensor(mask[0], inputs[1])
+        expanded = tf.expand_dims(mask[0], self.axis)
+        ones = [1] * K.ndim(expanded)
+        num_repetitions = inputs[1].shape[self.copy_from_axis]
+        tile_shape = tf.concat([ones[:self.axis], [num_repetitions], ones[self.axis + 1:]], 0)
+        return tf.tile(expanded, tile_shape)
 
     def compute_output_shape(self, input_shape):
         return input_shape[0][:self.axis] + (input_shape[1][self.copy_from_axis],) + input_shape[0][self.axis:]
 
     def call(self, inputs, mask=None):
-        # TODO: I am using a workaround to deal with this problem.
-        return self.__repeat_tensor(inputs[0], inputs[1])
-        # return tf.reshape(self.__repeat_tensor(inputs[0], inputs[1]), self.compute_output_shape(tf.shape(inputs)))
-
-    def __repeat_tensor(self, to_repeat, to_copy):
-        expanded = tf.expand_dims(to_repeat, self.axis)
+        expanded = tf.expand_dims(inputs[0], self.axis)
         ones = [1] * K.ndim(expanded)
-        num_repetitions = to_copy.shape[self.copy_from_axis]
-        tile_shape = tf.concat([ones[:self.axis], [num_repetitions], ones[self.axis+1:]], 0)
+        num_repetitions = inputs[1].shape[self.copy_from_axis]
+        tile_shape = tf.concat([ones[:self.axis], [num_repetitions], ones[self.axis + 1:]], 0)
         return tf.tile(expanded, tile_shape)
+
 
     def get_config(self):
         base_config = super(RepeatLike, self).get_config()

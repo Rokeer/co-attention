@@ -1,10 +1,13 @@
+# -*- coding: utf-8 -*-
+# @Author: colinzhang
+# @Date:   9/12/19 8:50 PM
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 from copy import deepcopy
 from typing import List, Any, Dict
 from tensorflow.keras.layers import Layer
 from tensorflow.keras import backend as K
-from linear import Linear
-from dot_product import DotProduct
-
+from networks.linear import Linear
 
 
 class MatrixAttention(Layer):

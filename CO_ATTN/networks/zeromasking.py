@@ -1,5 +1,13 @@
-import tensorflow.keras.backend as K
+# -*- coding: utf-8 -*-
+# @Author: colinzhang
+# @Date:   9/12/19 2:43 PM
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 from tensorflow.keras.layers import Layer
+
+import tensorflow as tf
+import tensorflow.keras.backend as K
+
 
 class ZeroMaskedEntries(Layer):
     """
@@ -15,20 +23,22 @@ class ZeroMaskedEntries(Layer):
             return K.not_equal(x, 0)
     """
 
-    def __init__(self, **kwargs):
-        self.support_mask = True
+    def __init__(self, mask_zero=False, **kwargs):
         super(ZeroMaskedEntries, self).__init__(**kwargs)
+        self.mask_zero = mask_zero
 
     def build(self, input_shape):
         self.output_dim = input_shape[1]
         self.repeat_dim = input_shape[2]
-        self.built = True
 
-    def call(self, x, mask=None):
+    def call(self, inputs, mask=None):
         mask = K.cast(mask, 'float32')
         mask = K.repeat(mask, self.repeat_dim)
         mask = K.permute_dimensions(mask, (0, 2, 1))
-        return x * mask
+        return inputs * mask
 
-    def compute_mask(self, input_shape, input_mask=None):
-        return None
+    def compute_mask(self, inputs, mask=None):
+        if not self.mask_zero:
+            return None
+        else:
+            return tf.not_equal(inputs, 0)

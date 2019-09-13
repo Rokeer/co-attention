@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# @Author: colinzhang
+# @Date:   9/12/19 8:50 PM
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 """
 Similarity functions take a pair of tensors with the same shape, and compute a similarity function
 on the vectors in the last dimension.  For example, the tensors might both have shape

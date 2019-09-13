@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# @Author: colinzhang
+# @Date:   9/12/19 8:56 PM
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 from tensorflow.keras.layers import Layer
 from tensorflow.keras import backend as K
 

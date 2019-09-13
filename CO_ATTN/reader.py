@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-# @Author: feidong1991
-# @Date:   2017-01-05 20:15:33
-# @Last Modified by:   rokeer
-# @Last Modified time: 2018-11-11 16:26:13
+# @Author: colinzhang
+# @Date:   9/11/19 12:58 PM
 
+from __future__ import absolute_import, division, print_function, unicode_literals
 import random
 import codecs
 import sys
@@ -14,6 +13,7 @@ import numpy as np
 import pickle as pk
 import utils
 
+
 url_replacer = '<url>'
 logger = utils.get_logger("Loading data...")
 num_regex = re.compile('^[+-]?[0-9]+\.?[0-9]*$')
@@ -21,18 +21,6 @@ ref_scores_dtype = 'int32'
 
 MAX_SENTLEN = 50
 MAX_SENTNUM = 100
-
-asap_ranges = {
-    0: (0, 60),
-    1: (2, 12),
-    2: (1, 6),
-    3: (0, 3),
-    4: (0, 3),
-    5: (0, 4),
-    6: (0, 4),
-    7: (0, 30),
-    8: (0, 60)
-}
 
 
 def get_ref_dtype():
@@ -46,46 +34,6 @@ def tokenize(string):
             tokens[index+1] = '@' + re.sub('[0-9]+.*', '', tokens[index+1])
             tokens.pop(index)
     return tokens
-
-
-def get_score_range(prompt_id):
-    return asap_ranges[prompt_id]
-
-
-def get_model_friendly_scores(scores_array, prompt_id_array):
-    arg_type = type(prompt_id_array)
-    assert arg_type in {int, np.ndarray}
-    if arg_type is int:
-        low, high = asap_ranges[prompt_id_array]
-        scores_array = (scores_array - low) / (high - low)
-    # else:
-    #     assert scores_array.shape[0] == prompt_id_array.shape[0]
-    #     dim = scores_array.shape[0]
-    #     low = np.zeros(dim)
-    #     high = np.zeros(dim)
-    #     for ii in range(dim):
-    #         low[ii], high[ii] = asap_ranges[prompt_id_array[ii]]
-    #     scores_array = (scores_array - low) / (high - low)
-    # assert np.all(scores_array >= 0) and np.all(scores_array <= 1)
-    return scores_array
-
-
-def convert_to_dataset_friendly_scores(scores_array, prompt_id_array):
-    arg_type = type(prompt_id_array)
-    assert arg_type in {int, np.ndarray}
-    if arg_type is int:
-        low, high = asap_ranges[prompt_id_array]
-        scores_array = scores_array * (high - low) + low
-        assert np.all(scores_array >= low) and np.all(scores_array <= high)
-    else:
-        assert scores_array.shape[0] == prompt_id_array.shape[0]
-        dim = scores_array.shape[0]
-        low = np.zeros(dim)
-        high = np.zeros(dim)
-        for ii in range(dim):
-            low[ii], high[ii] = asap_ranges[prompt_id_array[ii]]
-        scores_array = scores_array * (high - low) + low
-    return scores_array
 
 
 def is_number(token):
@@ -141,50 +89,183 @@ def create_vocab(file_path, prompt_id, vocab_size, tokenize_text, to_lower):
     return vocab
 
 
-def create_char_vocab(file_path, prompt_id, tokenize_text, to_lower):
-    logger.info("Create char vocabulary from: %s" % file_path)
-    total_chars, unique_chars = 0, 0
-    char_vocab = {}
-    start_index = 1
-    char_vocab['<unk>'] = start_index
-    next_index = start_index + 1
-    with codecs.open(file_path, 'r', encoding='utf-8') as input_file:
+# def get_data_context(paths, prompt_id, vocab_size, tokenize_text=True, to_lower=True, sort_by_len=False, vocab_path=None, score_index=6):
+#     train_path, dev_path, test_path = paths[0], paths[1], paths[2]
+#
+#     logger.info("Prompt id is %s" % prompt_id)
+#     if not vocab_path:
+#         vocab = create_vocab(train_path, prompt_id, vocab_size, tokenize_text, to_lower)
+#         if len(vocab) < vocab_size:
+#             logger.warning('The vocabulary includes only %i words (less than %i)' % (len(vocab), vocab_size))
+#         else:
+#             assert vocab_size == 0 or len(vocab) == vocab_size
+#     else:
+#         vocab = load_vocab(vocab_path)
+#         if len(vocab) != vocab_size:
+#             logger.warning('The vocabulary includes %i words which is different from given: %i' % (len(vocab), vocab_size))
+#     logger.info('  Vocab size: %i' % (len(vocab)))
+#
+#     train_x, train_y, train_prompts, train_maxsentlen, train_maxsentnum, train_context, c_maxsentlen, c_maxsentnum, text_train = read_dataset_context(train_path, prompt_id, vocab, to_lower)
+#     dev_x, dev_y, dev_prompts, dev_maxsentlen, dev_maxsentnum, dev_context, c_maxsentlen, c_maxsentnum, text_dev  = read_dataset_context(dev_path, prompt_id, vocab, to_lower)
+#     test_x, test_y, test_prompts, test_maxsentlen, test_maxsentnum, test_context, c_maxsentlen, c_maxsentnum, text_test = read_dataset_context(test_path, prompt_id, vocab,  to_lower)
+#
+#     overal_maxlen = max(train_maxsentlen, dev_maxsentlen, test_maxsentlen)
+#     overal_maxnum = max(train_maxsentnum, dev_maxsentnum, test_maxsentnum)
+#
+#     logger.info("Training data max sentence num = %s, max sentence length = %s" % (train_maxsentnum, train_maxsentlen))
+#     logger.info("Dev data max sentence num = %s, max sentence length = %s" % (dev_maxsentnum, dev_maxsentlen))
+#     logger.info("Test data max sentence num = %s, max sentence length = %s" % (test_maxsentnum, test_maxsentlen))
+#     logger.info("Overall max sentence num = %s, max sentence length = %s" % (overal_maxnum, overal_maxlen))
+#
+#     return (train_x, train_y, train_prompts, train_context, text_train), (dev_x, dev_y, dev_prompts, dev_context, text_dev), (test_x, test_y, test_prompts, test_context, text_test), vocab, overal_maxlen, overal_maxnum, c_maxsentlen, c_maxsentnum
+
+
+def read_dataset(file_path, prompt_id, vocab, to_lower, score_index=6):
+    logger.info('Reading dataset from: ' + file_path)
+
+    data_x, data_y, prompt_ids, text = [], [], [], []
+    num_hit, unk_hit, total = 0., 0., 0.
+    max_sentnum = -1
+    max_sentlen = -1
+    with codecs.open(file_path, mode='r', encoding='UTF8') as input_file:
         next(input_file)
         for line in input_file:
             tokens = line.strip().split('\t')
             essay_id = int(tokens[0])
             essay_set = int(tokens[1])
             content = tokens[2].strip()
-            score = float(tokens[6])
+            score = float(tokens[score_index])
             if essay_set == prompt_id or prompt_id <= 0:
-                if tokenize_text:
-                    content = text_tokenizer(content, True, True, True)
+                # tokenize text into sentences
+                sent_tokens = text_tokenizer(content, replace_url_flag=True, tokenize_sent_flag=True)
                 if to_lower:
-                    content = [w.lower() for w in content]
-                for word in content:
-                    for char in list(word):
-                        if not char in char_vocab:
-                            char_vocab[char] = next_index
-                            next_index += 1
-                            unique_chars += 1
-                        total_chars += 1
-    logger.info('  %i total chars, %i unique chars' % (total_chars, unique_chars))
-    return char_vocab
+                    sent_tokens = [[w.lower() for w in s] for s in sent_tokens]
+
+                sent_indices = []
+                indices = []
+                sentences = []
+                words = []
+                for sent in sent_tokens:
+                    length = len(sent)
+                    if length > 0:
+                        if max_sentlen < length:
+                            max_sentlen = length
+
+                        for word in sent:
+                            if is_number(word):
+                                indices.append(vocab['<num>'])
+                                num_hit += 1
+                            elif word in vocab:
+                                indices.append(vocab[word])
+                            else:
+                                indices.append(vocab['<unk>'])
+                                unk_hit += 1
+                            total += 1
+                            words.append(word)
+                        sentences.append(words)
+                        sent_indices.append(indices)
+                        indices = []
+
+                text.append(sentences)
+                data_x.append(sent_indices)
+                data_y.append(score)
+                prompt_ids.append(essay_set)
+
+                if max_sentnum < len(sent_indices):
+                    max_sentnum = len(sent_indices)
+    logger.info('  <num> hit rate: %.2f%%, <unk> hit rate: %.2f%%' % (100*num_hit/total, 100*unk_hit/total))
+    return data_x, data_y, prompt_ids, max_sentlen, max_sentnum, text
 
 
-def read_essays(file_path, prompt_id):
-    logger.info('Reading tsv from: ' + file_path)
-    essays_list = []
-    essays_ids = []
-    with codecs.open(file_path, mode='r', encoding='UTF8') as input_file:
-        input_file.next()
+def get_data(
+        paths,
+        prompt_id,
+        vocab_size,
+        tokenize_text=True,
+        to_lower=True,
+        vocab_path=None,
+        score_index=6
+):
+    train_path, dev_path, test_path = paths[0], paths[1], paths[2]
+
+    logger.info("Prompt id is %s" % prompt_id)
+    if not vocab_path:
+        vocab = create_vocab(train_path, prompt_id, vocab_size, tokenize_text, to_lower)
+        if len(vocab) < vocab_size:
+            logger.warning('The vocabulary includes only %i words (less than %i)' % (len(vocab), vocab_size))
+        else:
+            assert vocab_size == 0 or len(vocab) == vocab_size
+    else:
+        vocab = load_vocab(vocab_path)
+        if len(vocab) != vocab_size:
+            logger.warning('The vocabulary includes %i words which is different from given: %i' % (len(vocab), vocab_size))
+    logger.info('  Vocab size: %i' % (len(vocab)))
+
+    train_x, train_y, train_prompts, train_maxsentlen, train_maxsentnum, train_text = \
+        read_dataset(train_path, prompt_id, vocab, to_lower, score_index)
+    dev_x, dev_y, dev_prompts, dev_maxsentlen, dev_maxsentnum, dev_text = \
+        read_dataset(dev_path, prompt_id, vocab, to_lower, score_index)
+    test_x, test_y, test_prompts, test_maxsentlen, test_maxsentnum, test_text = \
+        read_dataset(test_path, prompt_id, vocab,  to_lower, score_index)
+
+    overall_maxlen = max(train_maxsentlen, dev_maxsentlen, test_maxsentlen)
+    overall_maxnum = max(train_maxsentnum, dev_maxsentnum, test_maxsentnum)
+
+    logger.info("Training data max sentence num = %s, max sentence length = %s" % (train_maxsentnum, train_maxsentlen))
+    logger.info("Dev data max sentence num = %s, max sentence length = %s" % (dev_maxsentnum, dev_maxsentlen))
+    logger.info("Test data max sentence num = %s, max sentence length = %s" % (test_maxsentnum, test_maxsentlen))
+    logger.info("Overall max sentence num = %s, max sentence length = %s" % (overall_maxnum, overall_maxlen))
+
+    return (train_x, train_y, train_prompts, train_text),\
+           (dev_x, dev_y, dev_prompts, dev_text),\
+           (test_x, test_y, test_prompts, test_text),\
+           vocab, overall_maxlen, overall_maxnum
+
+
+def get_context(prompt_id, vocab, to_lower=True):
+    context_path = 'data/' + str(prompt_id) + '.txt'
+    logger.info('Reading context from: ' + context_path)
+
+    num_hit, unk_hit, total = 0., 0., 0.
+    max_context_sentlen = -1
+    context_sentnum = 0
+    context_indices = []
+    with codecs.open(context_path, mode='r', encoding='UTF8') as input_file:
         for line in input_file:
-            tokens = line.strip().split('\t')
-            if int(tokens[1]) == prompt_id or prompt_id <= 0:
-                essays_list.append(tokens[2].strip())
-                essays_ids.append(int(tokens[0]))
-    return essays_list, essays_ids
+            # context_sent = context_sent + ' ' + line
 
+            # tokenize text into sentences
+            context_sent = line
+            sent_tokens = text_tokenizer(context_sent, replace_url_flag=True, tokenize_sent_flag=True)
+            if to_lower:
+                sent_tokens = [[w.lower() for w in s] for s in sent_tokens]
+
+            indices = []
+            for sent in sent_tokens:
+                length = len(sent)
+                if (length > 0) :
+                    if max_context_sentlen < length:
+                        max_context_sentlen = length
+
+                    for word in sent:
+                        if is_number(word):
+                            indices.append(vocab['<num>'])
+                            num_hit += 1
+                        elif word in vocab:
+                            indices.append(vocab[word])
+                        else:
+                            indices.append(vocab['<unk>'])
+                            unk_hit += 1
+                        total += 1
+                    context_indices.append(indices)
+                    indices = []
+            # max_context_sentlen = len(indices)
+
+        # context_indices.append(indices)
+        context_sentnum = len(context_indices)
+
+    logger.info("Context sentence num = %s, max sentence length = %s" % (context_sentnum, max_context_sentlen))
+    return context_indices, max_context_sentlen, context_sentnum
 
 def replace_url(text):
     replaced_text = re.sub('(http[s]?://)?((www)\.)?([a-zA-Z0-9]+)\.{1}((com)(\.(cn))?|(org))', url_replacer, text)
@@ -192,7 +273,8 @@ def replace_url(text):
 
 
 def text_tokenizer(text, replace_url_flag=True, tokenize_sent_flag=True, create_vocab_flag=False):
-    text = replace_url(text)
+    if replace_url_flag:
+        text = replace_url(text)
     text = text.replace(u'"', u'')
     if "..." in text:
         text = re.sub(r'\.{3,}(\s+\.{3,})*', '...', text)
@@ -204,7 +286,7 @@ def text_tokenizer(text, replace_url_flag=True, tokenize_sent_flag=True, create_
         text = re.sub(r'\!{2,}(\s+\!{2,})*', '!', text)
         # print text
 
-    # TODO here
+
     tokens = tokenize(text)
     if tokenize_sent_flag:
         text = " ".join(tokens)
@@ -231,8 +313,6 @@ def tokenize_to_sentences(text, max_sentlength, create_vocab_flag=False):
     for sent in sents:
         if re.search(r'(?<=\.{1}|\!|\?|\,)(@?[A-Z]+[a-zA-Z]*[0-9]*)', sent):
             s = re.split(r'(?=.{2,})(?<=\.{1}|\!|\?|\,)(@?[A-Z]+[a-zA-Z]*[0-9]*)', sent)
-            # print sent
-            # print s
             ss = " ".join(s)
             ssL = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\!|\?)\s', ss)
 
@@ -298,329 +378,3 @@ def shorten_sentence(sent, max_sentlen):
 
     # print "Before processed sentences length = %d, after processed sentences num = %d " % (len(tokens), len(new_tokens))
     return new_tokens
-
-def read_dataset_context(file_path, prompt_id, vocab, to_lower, score_index=6, char_level=False):
-    logger.info('Reading dataset from: ' + file_path)
-
-    # hard code to read context here
-    context_path = 'data/' + str(prompt_id) + '.txt'
-    context_sent = ''
-    max_context_sentlen = -1
-    context_sentnum = 0
-    context_indices = []
-    with codecs.open(context_path, mode='r', encoding='UTF8') as input_file:
-        for line in input_file:
-            # context_sent = context_sent + ' ' + line
-
-            # tokenize text into sentences
-            context_sent = line
-            sent_tokens = text_tokenizer(context_sent, replace_url_flag=True, tokenize_sent_flag=True)
-            if to_lower:
-                sent_tokens = [[w.lower() for w in s] for s in sent_tokens]
-            if char_level:
-                raise NotImplementedError
-
-
-            indices = []
-            if char_level:
-                raise NotImplementedError
-            else:
-                for sent in sent_tokens:
-                    length = len(sent)
-                    if (length > 0) :
-                        if max_context_sentlen < length:
-                            max_context_sentlen = length
-
-                        for word in sent:
-                            if is_number(word):
-                                indices.append(vocab['<num>'])
-                            elif word in vocab:
-                                indices.append(vocab[word])
-                            else:
-                                indices.append(vocab['<unk>'])
-                        context_indices.append(indices)
-                        indices = []
-            # max_context_sentlen = len(indices)
-
-        # context_indices.append(indices)
-        context_sentnum = len(context_indices)
-    data_x, data_y, prompt_ids, context = [], [], [], []
-    text_x = []
-    num_hit, unk_hit, total = 0., 0., 0.
-    max_sentnum = -1
-    max_sentlen = -1
-    with codecs.open(file_path, mode='r', encoding='UTF8') as input_file:
-        next(input_file)
-        for line in input_file:
-            tokens = line.strip().split('\t')
-            essay_id = int(tokens[0])
-            essay_set = int(tokens[1])
-            content = tokens[2].strip()
-            score = float(tokens[score_index])
-            if essay_set == prompt_id or prompt_id <= 0:
-                # tokenize text into sentences
-                sent_tokens = text_tokenizer(content, replace_url_flag=True, tokenize_sent_flag=True)
-                if to_lower:
-                    sent_tokens = [[w.lower() for w in s] for s in sent_tokens]
-                if char_level:
-                    raise NotImplementedError
-
-                sent_indices = []
-                indices = []
-                sentences = []
-                words = []
-                if char_level:
-                    raise NotImplementedError
-                else:
-                    for sent in sent_tokens:
-                        length = len(sent)
-                        if length > 0:
-                            # print(sent)
-                            if max_sentlen < length:
-                                max_sentlen = length
-
-                            for word in sent:
-                                if is_number(word):
-                                    indices.append(vocab['<num>'])
-                                    num_hit += 1
-                                elif word in vocab:
-                                    indices.append(vocab[word])
-                                else:
-                                    indices.append(vocab['<unk>'])
-                                    unk_hit += 1
-                                total += 1
-                                words.append(word)
-                            sentences.append(words)
-                            sent_indices.append(indices)
-                            indices = []
-                            words = []
-                text_x.append(sentences)
-                data_x.append(sent_indices)
-                data_y.append(score)
-                context.append(context_indices)
-                prompt_ids.append(essay_set)
-
-                if max_sentnum < len(sent_indices):
-                    max_sentnum = len(sent_indices)
-    logger.info('  <num> hit rate: %.2f%%, <unk> hit rate: %.2f%%' % (100*num_hit/total, 100*unk_hit/total))
-    return data_x, data_y, prompt_ids, max_sentlen, max_sentnum, context, max_context_sentlen, context_sentnum, text_x
-
-def read_dataset(file_path, prompt_id, vocab, to_lower, score_index=6, char_level=False):
-    logger.info('Reading dataset from: ' + file_path)
-
-    data_x, data_y, prompt_ids = [], [], []
-    num_hit, unk_hit, total = 0., 0., 0.
-    max_sentnum = -1
-    max_sentlen = -1
-    with codecs.open(file_path, mode='r', encoding='UTF8') as input_file:
-        next(input_file)
-        for line in input_file:
-            tokens = line.strip().split('\t')
-            essay_id = int(tokens[0])
-            essay_set = int(tokens[1])
-            content = tokens[2].strip()
-            score = float(tokens[score_index])
-            if essay_set == prompt_id or prompt_id <= 0:
-                # tokenize text into sentences
-                sent_tokens = text_tokenizer(content, replace_url_flag=True, tokenize_sent_flag=True)
-                if to_lower:
-                    sent_tokens = [[w.lower() for w in s] for s in sent_tokens]
-                if char_level:
-                    raise NotImplementedError
-
-                sent_indices = []
-                indices = []
-                if char_level:
-                    raise NotImplementedError
-                else:
-                    for sent in sent_tokens:
-                        length = len(sent)
-                        if max_sentlen < length:
-                            max_sentlen = length
-
-                        for word in sent:
-                            if is_number(word):
-                                indices.append(vocab['<num>'])
-                                num_hit += 1
-                            elif word in vocab:
-                                indices.append(vocab[word])
-                            else:
-                                indices.append(vocab['<unk>'])
-                                unk_hit += 1
-                            total += 1
-                        sent_indices.append(indices)
-                        indices = []
-                data_x.append(sent_indices)
-                data_y.append(score)
-                prompt_ids.append(essay_set)
-
-                if max_sentnum < len(sent_indices):
-                    max_sentnum = len(sent_indices)
-    logger.info('  <num> hit rate: %.2f%%, <unk> hit rate: %.2f%%' % (100*num_hit/total, 100*unk_hit/total))
-    return data_x, data_y, prompt_ids, max_sentlen, max_sentnum
-
-def get_data_context(paths, prompt_id, vocab_size, tokenize_text=True, to_lower=True, sort_by_len=False, vocab_path=None, score_index=6):
-    train_path, dev_path, test_path = paths[0], paths[1], paths[2]
-
-    logger.info("Prompt id is %s" % prompt_id)
-    if not vocab_path:
-        vocab = create_vocab(train_path, prompt_id, vocab_size, tokenize_text, to_lower)
-        if len(vocab) < vocab_size:
-            logger.warning('The vocabulary includes only %i words (less than %i)' % (len(vocab), vocab_size))
-        else:
-            assert vocab_size == 0 or len(vocab) == vocab_size
-    else:
-        vocab = load_vocab(vocab_path)
-        if len(vocab) != vocab_size:
-            logger.warning('The vocabulary includes %i words which is different from given: %i' % (len(vocab), vocab_size))
-    logger.info('  Vocab size: %i' % (len(vocab)))
-
-    train_x, train_y, train_prompts, train_maxsentlen, train_maxsentnum, train_context, c_maxsentlen, c_maxsentnum, text_train = read_dataset_context(train_path, prompt_id, vocab, to_lower)
-    dev_x, dev_y, dev_prompts, dev_maxsentlen, dev_maxsentnum, dev_context, c_maxsentlen, c_maxsentnum, text_dev  = read_dataset_context(dev_path, prompt_id, vocab, to_lower)
-    test_x, test_y, test_prompts, test_maxsentlen, test_maxsentnum, test_context, c_maxsentlen, c_maxsentnum, text_test = read_dataset_context(test_path, prompt_id, vocab,  to_lower)
-
-    overal_maxlen = max(train_maxsentlen, dev_maxsentlen, test_maxsentlen)
-    overal_maxnum = max(train_maxsentnum, dev_maxsentnum, test_maxsentnum)
-
-    logger.info("Training data max sentence num = %s, max sentence length = %s" % (train_maxsentnum, train_maxsentlen))
-    logger.info("Dev data max sentence num = %s, max sentence length = %s" % (dev_maxsentnum, dev_maxsentlen))
-    logger.info("Test data max sentence num = %s, max sentence length = %s" % (test_maxsentnum, test_maxsentlen))
-    logger.info("Overall max sentence num = %s, max sentence length = %s" % (overal_maxnum, overal_maxlen))
-
-    return (train_x, train_y, train_prompts, train_context, text_train), (dev_x, dev_y, dev_prompts, dev_context, text_dev), (test_x, test_y, test_prompts, test_context, text_test), vocab, overal_maxlen, overal_maxnum, c_maxsentlen, c_maxsentnum
-
-def get_data(paths, prompt_id, vocab_size, tokenize_text=True, to_lower=True, sort_by_len=False, vocab_path=None, score_index=6):
-    train_path, dev_path, test_path = paths[0], paths[1], paths[2]
-
-    logger.info("Prompt id is %s" % prompt_id)
-    if not vocab_path:
-        vocab = create_vocab(train_path, prompt_id, vocab_size, tokenize_text, to_lower)
-        if len(vocab) < vocab_size:
-            logger.warning('The vocabulary includes only %i words (less than %i)' % (len(vocab), vocab_size))
-        else:
-            assert vocab_size == 0 or len(vocab) == vocab_size
-    else:
-        vocab = load_vocab(vocab_path)
-        if len(vocab) != vocab_size:
-            logger.warning('The vocabulary includes %i words which is different from given: %i' % (len(vocab), vocab_size))
-    logger.info('  Vocab size: %i' % (len(vocab)))
-
-    train_x, train_y, train_prompts, train_maxsentlen, train_maxsentnum = read_dataset(train_path, prompt_id, vocab, to_lower)
-    dev_x, dev_y, dev_prompts, dev_maxsentlen, dev_maxsentnum = read_dataset(dev_path, prompt_id, vocab, to_lower)
-    test_x, test_y, test_prompts, test_maxsentlen, test_maxsentnum = read_dataset(test_path, prompt_id, vocab,  to_lower)
-
-    overal_maxlen = max(train_maxsentlen, dev_maxsentlen, test_maxsentlen)
-    overal_maxnum = max(train_maxsentnum, dev_maxsentnum, test_maxsentnum)
-
-    logger.info("Training data max sentence num = %s, max sentence length = %s" % (train_maxsentnum, train_maxsentlen))
-    logger.info("Dev data max sentence num = %s, max sentence length = %s" % (dev_maxsentnum, dev_maxsentlen))
-    logger.info("Test data max sentence num = %s, max sentence length = %s" % (test_maxsentnum, test_maxsentlen))
-    logger.info("Overall max sentence num = %s, max sentence length = %s" % (overal_maxnum, overal_maxlen))
-
-    return (train_x, train_y, train_prompts), (dev_x, dev_y, dev_prompts), (test_x, test_y, test_prompts), vocab, overal_maxlen, overal_maxnum
-
-
-def read_char_dataset(file_path, prompt_id, vocab, char_vocab, to_lower, score_index=6, char_level=True):
-    # support reading chars
-    logger.info('Reading dataset from: ' + file_path)
-
-    data_x, data_y, char_x, prompt_ids = [], [], [], []
-    num_hit, unk_hit, total = 0., 0., 0.
-    max_sentnum = -1
-    max_sentlen = -1
-    maxcharlen = -1
-    with codecs.open(file_path, mode='r', encoding='UTF8') as input_file:
-        next(input_file)
-        for line in input_file:
-            tokens = line.strip().split('\t')
-            essay_id = int(tokens[0])
-            essay_set = int(tokens[1])
-            content = tokens[2].strip()
-            score = float(tokens[score_index])
-            if essay_set == prompt_id or prompt_id <= 0:
-                # tokenize text into sentences
-                sent_tokens = text_tokenizer(content, replace_url_flag=True, tokenize_sent_flag=True)
-                if to_lower:
-                    sent_tokens = [[w.lower() for w in s] for s in sent_tokens]
-
-                sent_indices = []
-                indices = []
-                chars_indices = []
-                wc_indices = []
-
-                if char_level:
-                    # raise NotImplementedError
-                # else:
-                    for sent in sent_tokens:
-                        length = len(sent)
-                        if max_sentlen < length:
-                            max_sentlen = length
-
-                        for word in sent:
-                            if is_number(word):
-                                indices.append(vocab['<num>'])
-                                num_hit += 1
-                            elif word in vocab:
-                                indices.append(vocab[word])
-                            else:
-                                indices.append(vocab['<unk>'])
-                                unk_hit += 1
-                            total += 1
-                            # chars
-                            c_indices = []
-                            current_chars = list(word)
-                            if len(current_chars) > maxcharlen:
-                                maxcharlen = len(current_chars)
-                            for c in current_chars:
-                                try:
-                                    c_indices.append(char_vocab[c])
-                                except:
-                                    c_indices.append(char_vocab['<unk>'])
-                            wc_indices.append(c_indices)
-                        chars_indices.append(wc_indices)
-                        sent_indices.append(indices)
-                        indices = []
-                        wc_indices = []
-                data_x.append(sent_indices)
-                data_y.append(score)
-                char_x.append(chars_indices)
-                prompt_ids.append(essay_set)
-
-                if max_sentnum < len(sent_indices):
-                    max_sentnum = len(sent_indices)
-    logger.info('  <num> hit rate: %.2f%%, <unk> hit rate: %.2f%%' % (100*num_hit/total, 100*unk_hit/total))
-    return data_x, char_x,  data_y, prompt_ids, max_sentlen, max_sentnum, maxcharlen
-
-
-def get_char_data(paths, prompt_id, vocab_size, tokenize_text=True, to_lower=True, sort_by_len=False, vocab_path=None, score_index=6):
-    train_path, dev_path, test_path = paths[0], paths[1], paths[2]
-
-    logger.info("Prompt id is %s" % prompt_id)
-    if not vocab_path:
-        vocab = create_vocab(train_path, prompt_id, vocab_size, tokenize_text, to_lower)
-        char_vocab = create_char_vocab(train_path, prompt_id, tokenize_text, to_lower)
-        if len(vocab) < vocab_size:
-            logger.warning('The vocabulary includes only %i words (less than %i)' % (len(vocab), vocab_size))
-        else:
-            assert vocab_size == 0 or len(vocab) == vocab_size
-    else:
-        vocab = load_vocab(vocab_path)
-        if len(vocab) != vocab_size:
-            logger.warning('The vocabulary includes %i words which is different from given: %i' % (len(vocab), vocab_size))
-    logger.info(' Word vocab size: %i, char vocab size: %i' % (len(vocab), len(char_vocab)))
-
-    train_x, train_char_x, train_y, train_prompts, train_maxsentlen, train_maxsentnum, train_charlen = read_char_dataset(train_path, prompt_id, vocab, char_vocab, to_lower)
-    dev_x, dev_char_x, dev_y, dev_prompts, dev_maxsentlen, dev_maxsentnum, dev_charlen = read_char_dataset(dev_path, prompt_id, vocab, char_vocab, to_lower)
-    test_x, test_char_x, test_y, test_prompts, test_maxsentlen, test_maxsentnum, test_charlen = read_char_dataset(test_path, prompt_id, vocab, char_vocab, to_lower)
-
-    overal_maxlen = max(train_maxsentlen, dev_maxsentlen, test_maxsentlen)
-    overal_maxnum = max(train_maxsentnum, dev_maxsentnum, test_maxsentnum)
-    maxcharlen = max(train_charlen, dev_charlen, test_charlen)
-
-    logger.info("Training data max sentence num = %s, max sentence length = %s, max char len = %s" % (train_maxsentnum, train_maxsentlen, train_charlen))
-    logger.info("Dev data max sentence num = %s, max sentence length = %s, max char len = %s" % (dev_maxsentnum, dev_maxsentlen, dev_charlen))
-    logger.info("Test data max sentence num = %s, max sentence length = %s, max char len = %s" % (test_maxsentnum, test_maxsentlen, test_charlen))
-    logger.info("Overall max sentence num = %s, max sentence length = %s, max char len = %s" % (overal_maxnum, overal_maxlen, maxcharlen))
-
-    return (train_x, train_char_x, train_y, train_prompts), (dev_x, dev_char_x, dev_y, dev_prompts), (test_x, test_char_x, test_y, test_prompts), \
-            vocab, char_vocab, overal_maxlen, overal_maxnum, maxcharlen

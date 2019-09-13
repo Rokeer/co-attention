@@ -1,8 +1,13 @@
+# -*- coding: utf-8 -*-
+# @Author: colinzhang
+# @Date:   9/12/19 8:50 PM
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 from typing import List
 
 import tensorflow as tf
 from tensorflow.keras import backend as K
-from similarity_function import SimilarityFunction
+from networks.similarity_function import SimilarityFunction
 
 
 class Linear(SimilarityFunction):

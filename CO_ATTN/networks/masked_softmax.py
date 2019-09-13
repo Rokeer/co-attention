@@ -1,8 +1,13 @@
+# -*- coding: utf-8 -*-
+# @Author: colinzhang
+# @Date:   9/12/19 8:53 PM
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 from tensorflow.keras.layers import Layer
 from tensorflow.keras import backend as K
 
-from backend import last_dim_flatten
-from masked_operations import masked_softmax
+from networks.backend import last_dim_flatten
+from networks.masked_operations import masked_softmax
 
 class MaskedSoftmax(Layer):
     '''

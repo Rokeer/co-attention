@@ -1,6 +1,11 @@
+# -*- coding: utf-8 -*-
+# @Author: colinzhang
+# @Date:   9/12/19 10:07 PM
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 from tensorflow.keras import backend as K
 from tensorflow.keras.layers import Layer
-from backend import switch, very_negative_like
+from networks.backend import switch, very_negative_like
 
 
 class Max(Layer):

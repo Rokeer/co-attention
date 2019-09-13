@@ -3,12 +3,19 @@ Code for BEA 13 paper "Co-Attention Based Neural Network for Source-Dependent Es
 
 ## Dependencies
 
-python 2 for data/preprocess_asap.py
+python 2 for data/preprocess_asap.py (will be upgraded to python 3)
 
 python 3 for the rest
 
-* keras 2.2.4
-* tensorflow 1.12.0
+* tensorflow 2.0.0 beta
+* gensim
+* nltk
+* sklearn
+
+run python2 data/preprocess_asap.py for data splitting.
+Download Glove pretrained embedding from https://nlp.stanford.edu/projects/glove
+Extract glove.6B.50d.txt to the glove folder
+run python3 attn_network.py [options] for training and evaluation
 
 
 ## Cite
