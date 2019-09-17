@@ -165,7 +165,7 @@ def read_dataset(file_path, prompt_id, vocab, to_lower, score_index=6):
                         sentences.append(words)
                         sent_indices.append(indices)
                         indices = []
-
+                        words = []
                 text.append(sentences)
                 data_x.append(sent_indices)
                 data_y.append(score)
