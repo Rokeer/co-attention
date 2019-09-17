@@ -204,10 +204,7 @@ def build_shrcnn_model(
     if verbose:
         model.summary()
 
-    start_time = time.time()
-    model.compile(loss='mse', optimizer='rmsprop')
-    total_time = time.time() - start_time
-    logger.info("Model compiled in %.4f s" % total_time)
+    compile_model(model, opts)
 
     return model
 
