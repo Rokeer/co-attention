@@ -75,7 +75,7 @@ def load_word_embedding_dict(embedding, embedding_path, word_alphabet, logger, e
         logger.info("Loading GloVe ...")
         embedd_dim = -1
         embedd_dict = dict()
-        with open(embedding_path, 'r') as file:
+        with open(embedding_path, 'r', encoding='utf-8') as file:
             for line in file:
                 line = line.strip()
                 if len(line) == 0:
