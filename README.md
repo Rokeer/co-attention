@@ -3,20 +3,31 @@ Code for BEA 13 paper "Co-Attention Based Neural Network for Source-Dependent Es
 
 ## Dependencies
 
-python 2 for data/preprocess_asap.py (will be upgraded to python 3)
+Python 2 for data/preprocess_asap.py (will be upgraded to Python 3).
+	- I recommend that on installation, you *do not add to your PATH variable*. This way, it doesn't interfere with your current Python workflow.
+	- Then, when you need to run the preprocessing script, you'll run it something like:
+		- *c:/Python27/python.exe preprocess_asap.py*	
 
-python 3 for the rest
+Python 3 for the rest
 
 * tensorflow 2.0.0 beta
 * gensim
 * nltk
 * sklearn
 
-run python2 data/preprocess_asap.py for data splitting.
-Download Glove pretrained embedding from https://nlp.stanford.edu/projects/glove
-Extract glove.6B.50d.txt to the glove folder
-run python3 attn_network.py [options] for training and evaluation
+## Running on Linux, MacOS
 
+1. Run python2 data/preprocess_asap.py for data splitting.
+2. Download GloVe pretrained embedding from *https://nlp.stanford.edu/projects/glove*
+3. Extract *glove.6B.50d.txt* to the glove folder
+4. Run *python3 attn_network.py* [options] for training and evaluation
+
+## Running on Windows
+
+To run on Windows, do all of the commands for Linux/MacOS. Then you'll need to remove two "\n" symbols from the preprocessing script.
+	1. open "data/preprocess_asap.py" in your preferred text editor
+	2. on lines 28 and 31 in the preprocessing script, you'll find: *f_write.write("\r\n")*
+	3. remove the *\n* from both lines
 
 ## Cite
 If you use the code, please cite the following paper:
