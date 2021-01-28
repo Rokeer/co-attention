@@ -4,9 +4,10 @@ Code for BEA 13 paper "Co-Attention Based Neural Network for Source-Dependent Es
 ## Dependencies
 
 Python 2 for data/preprocess_asap.py (will be upgraded to Python 3).
-	* I recommend that on installation, you *do not add to your PATH variable*. This way, it doesn't interfere with your current Python workflow.
-	* Then, when you need to run the preprocessing script, you'll run it something like:
-		* *c:/Python27/python.exe preprocess_asap.py*	
+
+* I recommend that on installation, you *do not add to your PATH variable*. This way, it doesn't interfere with your current Python workflow.
+* Then, when you need to run the preprocessing script, you'll run it something like:
+	* *c:/Python27/python.exe preprocess_asap.py*	
 
 Python 3 for the rest
 
