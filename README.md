@@ -19,7 +19,7 @@ Python 3 for the rest
 
 ## Running on Linux, MacOS
 
-1. Run python2 data/preprocess_asap.py for data splitting.
+1. Run *python2 data/preprocess_asap.py* for data splitting.
 2. Download GloVe pretrained embedding from: *https://nlp.stanford.edu/projects/glove*
 3. Extract *glove.6B.50d.txt* to the glove folder
 4. Run *python3 attn_network.py [options]* for training and evaluation
@@ -28,7 +28,7 @@ Python 3 for the rest
 
 To run on Windows, do all of the commands for Linux/MacOS. Then you'll need to remove two "\n" symbols from the preprocessing script.
 
-1. open "data/preprocess_asap.py" in your preferred text editor
+1. open *data/preprocess_asap.py* in your preferred text editor
 2. on lines 28 and 31 in the preprocessing script, you'll find: *f_write.write("\r\n")*
 3. remove the *\n* from both lines
 
@@ -40,7 +40,7 @@ task (the default is ASAP3), the number of epochs (the default is 50), and more 
 
 Additionally, if you want to look at specific essays with their predicted and actual scores:
 
-1. go to the "checkpoints folder"
+1. go to the *checkpoints* folder
 2. after training, there should be a text file with one number per line. the line number corresponds to the essay number in the test data.
 3. in the various fold directories, open the test.tsv file and compare with the predicted scored in from step 2.
 
